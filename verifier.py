@@ -26,9 +26,24 @@ CE QU'IL VÉRIFIE
      Sans ça, le mode sombre laisse des plaques claires.
   6. Le mode sombre définit bien les mêmes variables que le mode clair.
      Le bloc étant écrit deux fois (requête média + attribut), il dérive vite.
+  7. Rien de ce qui arrive de l'extérieur n'est glissé tel quel dans la page.
+     Ajouté le 27/09/2026, après une faille restée trois jours en ligne : un
+     nom de case piégé, écrit sur un tableau Trello, s'exécutait dans le
+     navigateur du propriétaire et pouvait lire son jeton. Quatre vérifications :
+       a. le modèle d'axes est nettoyé à son entrée (assainirModele appelé en
+          tête d'appliquerModele) ;
+       b. l'adresse d'une carte ne finit dans un lien qu'à travers lienCarte(),
+          seule barrière contre un fichier carnet importé et piégé ;
+       c. dans un gabarit qui produit du HTML, un champ venu de Trello ou du
+          carnet (name, desc, list, tableauNom) passe par esc() ;
+       d. quand le script tourne dans le dépôt du site, la politique de
+          sécurité servie avec /quadratt/ n'autorise d'envoi que vers Trello.
+     Limite connue : une valeur qui transite par une variable intermédiaire
+     avant d'atteindre le gabarit échappe au contrôle c. Il attrape la
+     régression ordinaire, pas une construction faite pour le contourner.
 """
 
-import io, re, sys, html as H
+import io, json, os, re, sys, html as H
 
 # La console Windows sort en cp1252 par défaut et mange les accents.
 try:
@@ -78,6 +93,234 @@ def verdict(ok, message):
     print('   %s %s' % ('OK  ' if ok else 'ECHEC', message))
     if not ok:
         ECHECS.append(message)
+
+
+# --- découpage du JavaScript en gabarits -----------------------------------
+# Une expression régulière ne suffit pas à trouver les gabarits `...` : le
+# code en contient d'imbriqués (`<b>${x ? `<i>${y}</i>` : ""}</b>`), et au
+# moins une expression régulière du script contient elle-même un accent
+# grave. On parcourt donc le code en sautant chaînes, commentaires et
+# expressions régulières, comme le ferait le navigateur.
+
+MOTS_AVANT_REGEX = {'return', 'typeof', 'case', 'in', 'of', 'delete', 'void',
+                    'throw', 'new', 'instanceof', 'else', 'do', 'yield', 'await'}
+PONCT_AVANT_REGEX = set('(,=:[!&|?{};+-*%<>~^')
+
+
+def gabarits_du_script(js):
+    """Rend, pour chaque gabarit du script, son texte littéral et la liste de
+       ses expressions ${...}. Chaque expression est rendue en squelette : les
+       chaînes y sont remplacées par "", les gabarits imbriqués par ``, qui
+       sont eux-mêmes rendus à part."""
+    trouves = []
+    n = len(js)
+
+    def fin_chaine(i, q):
+        i += 1
+        while i < n:
+            c = js[i]
+            if c == '\\':
+                i += 2
+                continue
+            if c == q or c == '\n':
+                return i + 1
+            i += 1
+        return i
+
+    def fin_regex(i):
+        i += 1
+        classe = False
+        while i < n:
+            c = js[i]
+            if c == '\\':
+                i += 2
+                continue
+            if c == '\n':
+                return i
+            if classe:
+                if c == ']':
+                    classe = False
+            elif c == '[':
+                classe = True
+            elif c == '/':
+                i += 1
+                while i < n and js[i].isalpha():
+                    i += 1
+                return i
+            i += 1
+        return i
+
+    def lire_gabarit(i):
+        i += 1
+        texte, exprs = [], []
+        while i < n:
+            c = js[i]
+            if c == '\\':
+                texte.append(js[i:i + 2])
+                i += 2
+                continue
+            if c == '`':
+                trouves.append((''.join(texte), exprs))
+                return i + 1
+            if c == '$' and js[i + 1:i + 2] == '{':
+                i, squelette = lire_code(i + 2, jusqua_accolade=True)
+                exprs.append(squelette)
+                continue
+            texte.append(c)
+            i += 1
+        return i
+
+    def lire_code(i, jusqua_accolade=False):
+        prof, sq, prec, mot = 0, [], '', ''
+        while i < n:
+            c = js[i]
+            if c in ' \t\r\n':
+                sq.append(c)
+                i += 1
+                continue
+            if c == '/' and js[i + 1:i + 2] == '/':
+                j = js.find('\n', i)
+                i = n if j < 0 else j
+                continue
+            if c == '/' and js[i + 1:i + 2] == '*':
+                j = js.find('*/', i + 2)
+                i = n if j < 0 else j + 2
+                continue
+            if c == '/' and (prec == '' or prec in PONCT_AVANT_REGEX or mot in MOTS_AVANT_REGEX):
+                i = fin_regex(i)
+                sq.append('RE')
+                prec, mot = 'x', ''
+                continue
+            if c in '"\'':
+                i = fin_chaine(i, c)
+                sq.append('""')
+                prec, mot = 'x', ''
+                continue
+            if c == '`':
+                i = lire_gabarit(i)
+                sq.append('``')
+                prec, mot = 'x', ''
+                continue
+            if jusqua_accolade:
+                if c == '{':
+                    prof += 1
+                elif c == '}':
+                    if prof == 0:
+                        return i + 1, ''.join(sq)
+                    prof -= 1
+            if c.isalnum() or c in '_$':
+                j = i
+                while j < n and (js[j].isalnum() or js[j] in '_$'):
+                    j += 1
+                mot = js[i:j]
+                sq.append(mot)
+                prec = 'x'
+                i = j
+                continue
+            sq.append(c)
+            prec, mot = c, ''
+            i += 1
+        return i, ''.join(sq)
+
+    lire_code(0)
+    return trouves
+
+
+def retirer_appels(expr, nom):
+    """Remplace chaque appel nom(...) par un jeton neutre, parenthèses
+       équilibrées comprises : ce qui est dedans est réputé protégé."""
+    motif = re.compile(r'\b' + nom + r'\(')
+    while True:
+        m = motif.search(expr)
+        if not m:
+            return expr
+        i, prof = m.end(), 1
+        while i < len(expr) and prof:
+            prof += {'(': 1, ')': -1}.get(expr[i], 0)
+            i += 1
+        expr = expr[:m.start()] + '_' + expr[i:]
+
+
+# Champs dont la valeur arrive de Trello ou d'un fichier carnet, donc de
+# n'importe qui. Les textes du modèle d'axes n'y figurent pas : ils sont
+# nettoyés à leur entrée, et c'est justement ce que vérifie le contrôle 7a.
+CHAMP_EXTERIEUR = re.compile(r'\.(name|desc|list)\b|\btableauNom\b')
+CHAMP_ADRESSE = re.compile(r'\.(url|shortUrl)\b')
+
+# Un champ extérieur qui sert à choisir ou à comparer n'arrive pas à l'écran :
+# lists.filter(l => l.name !== "Fait") n'affiche aucun nom. Ces appels
+# rendent un booléen, un rang ou un tri, jamais le texte lui-même. Ce qui
+# suit l'appel reste contrôlé : lists.find(...).name est bien attrapé.
+APPELS_SANS_AFFICHAGE = ('filter', 'find', 'findIndex', 'some', 'every', 'test',
+                         'includes', 'indexOf', 'has', 'sort')
+COMPARAISON = re.compile(r'[\w.$\[\]]+\s*[!=]==?\s*[\w.$\[\]"\']+')
+
+
+def part_affichee(expr):
+    for nom in ('esc', 'lienCarte') + APPELS_SANS_AFFICHAGE:
+        expr = retirer_appels(expr, nom)
+    return COMPARAISON.sub('_', expr)
+
+
+def controle_textes_exterieurs(h):
+    titre(7, "Textes venus de l'extérieur")
+    scripts = re.findall(r'<script(?![^>]*ld\+json)[^>]*>(.*?)</script>', h, re.S)
+    gabs = [g for s in scripts for g in gabarits_du_script(s)]
+
+    # a. le modèle est nettoyé à son entrée
+    m = re.search(r'function appliquerModele\([^)]*\)\s*\{', h)
+    ok_a = bool('function assainirModele(' in h and m
+                and 'assainirModele(' in h[m.end():m.end() + 200])
+    if not ok_a:
+        print("     appliquerModele() ne commence plus par assainirModele()")
+    verdict(ok_a, 'modèle d’axes nettoyé à son entrée')
+
+    # b. l'adresse d'une carte passe par lienCarte()
+    adresses = []
+    for texte, exprs in gabs:
+        if '<' not in texte:
+            continue
+        for e in exprs:
+            if CHAMP_ADRESSE.search(retirer_appels(e, 'lienCarte')):
+                adresses.append(' '.join(e.split()))
+    for e in re.findall(r'window\.open\(\s*([\w.]+)', h):
+        if CHAMP_ADRESSE.search(e):
+            adresses.append('window.open(' + e)
+    for e in adresses:
+        print('     ${%s} : adresse de carte hors de lienCarte()' % e[:70])
+    verdict('function lienCarte(' in h and not adresses,
+            '%d adresse(s) de carte non filtrée(s)' % len(adresses))
+
+    # c. champs extérieurs échappés dans les gabarits HTML
+    nus = []
+    for texte, exprs in gabs:
+        if '<' not in texte:
+            continue
+        for e in exprs:
+            if CHAMP_EXTERIEUR.search(part_affichee(e)):
+                nus.append(' '.join(e.split()))
+    for e in nus:
+        print('     ${%s} : texte extérieur affiché sans esc()' % e[:70])
+    verdict(not nus, '%d texte(s) extérieur(s) non échappé(s) dans %d gabarit(s) HTML'
+            % (len(nus), sum(1 for t_, _ in gabs if '<' in t_)))
+
+    # d. politique de sécurité servie avec la page
+    vj = os.path.join(os.path.dirname(os.path.abspath(FICHIER)), '..', 'vercel.json')
+    if not os.path.exists(vj):
+        print("   --   politique de sécurité non vérifiée : pas de vercel.json à côté")
+        return
+    conf = json.load(io.open(vj, encoding='utf-8'))
+    csp = [x['value'] for r in conf.get('headers', []) if r.get('source', '').startswith('/quadratt')
+           for x in r.get('headers', []) if x.get('key', '').lower() == 'content-security-policy']
+    csp = csp[0] if csp else ''
+    ok_d = bool(csp and "default-src 'none'" in csp
+                and re.search(r"connect-src https://api\.trello\.com\s*(;|$)", csp)
+                and 'unsafe-eval' not in csp)
+    if not csp:
+        print('     aucune Content-Security-Policy pour /quadratt/ dans vercel.json')
+    elif not ok_d:
+        print('     la politique autorise plus que Trello : ' + csp[:90])
+    verdict(ok_d, 'envois limités à Trello par la politique de sécurité')
 
 
 def main():
@@ -211,6 +454,9 @@ def main():
                 '%d écart(s) entre les palettes' % (len(ecart) + len(oubli)))
     else:
         verdict(False, 'palettes introuvables (%d bloc(s) trouvé(s))' % len(palettes))
+
+    # --- 7. textes venus de l'extérieur ------------------------------------
+    controle_textes_exterieurs(h)
 
     # --- bilan -----------------------------------------------------------
     print()

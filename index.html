@@ -3486,6 +3486,13 @@ $("#btnUndo").onclick = async () => {
 
 /* ---------- affichage ---------- */
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+/* L’adresse d’une carte finit dans un lien. Trello ne produit que des
+   adresses https://trello.com/… ; tout le reste arrive d’un fichier carnet
+   importé, donc de n’importe qui. Une adresse en javascript: ou un guillemet
+   glissé suffirait à faire exécuter du code : on ne garde que ce que Trello
+   aurait pu produire, et le reste devient un lien vide, comme pour une carte
+   du carnet. */
+function lienCarte(u){ return /^https:\/\/trello\.com\/[\w\-\/.%]*$/.test(u || "") ? u : ""; }
 function echeance(c){
   if(!c.due) return null;
   const d = new Date(c.due);
@@ -3504,7 +3511,7 @@ function ouvrirCarteTrello(c){
   if(carnet){ toast("Les cartes du carnet n’existent que dans ce navigateur", 0); return; }
   if(demo){ toast("En démonstration, ces cartes n’existent pas dans Trello", 0); return; }
   if(!c.url){ toast("Cette carte n’a pas de lien Trello", 0); return; }
-  window.open(c.url, "_blank", "noopener");
+  window.open(lienCarte(c.url), "_blank", "noopener");
 }
 
 function fiche(c, index){
@@ -3581,7 +3588,7 @@ function ouvrirMenu(ancre, c){
     + (c.quad ? `<button data-q="0"><span class="puce" style="background:var(--filet-fort)"></span>Retirer du classement<span class="touche">0</span></button>` : "")
     + `<div class="sep"></div>`
     + `<button data-action="archiver"><span class="puce" style="background:var(--filet-fort)"></span>Archiver la carte<span class="touche">↓</span></button>`
-    + `<a href="${c.url}" target="_blank" rel="noopener">Ouvrir dans Trello ↗</a>`;
+    + `<a href="${lienCarte(c.url)}" target="_blank" rel="noopener">Ouvrir dans Trello ↗</a>`;
   document.body.appendChild(m);
   traduireArbre(m);
   placerMenu(m, ancre.querySelector(".ranger"));
@@ -3844,7 +3851,7 @@ function rendreTriage(anime){
       <b>${esc(t(repondu))}</b></p>`;
 
   ouvrirScene("Tri éclair", `
-    <a class="fiche-scene" id="ficheScene" href="${card.url}" target="_blank" rel="noopener"
+    <a class="fiche-scene" id="ficheScene" href="${lienCarte(card.url)}" target="_blank" rel="noopener"
        title="${t("Ouvrir cette carte dans Trello, dans un nouvel onglet")}">
       <div class="nom">${esc(card.name)}</div>
       <div class="meta">${esc(card.list)}${e ? " · " + t("échéance") + " " + esc(e.txt) : " · " + t("sans échéance")}</div>
@@ -4057,7 +4064,7 @@ $("#btnFocus").onclick = () => {
     return `<div class="focus-item" style="border-left-color:var(--q${c.quad})">
       <div class="rang" style="color:var(--q${c.quad})">${rangs[i]} · ${QNOM[c.quad]}</div>
       <div class="nom">${esc(c.name)}</div>
-      <div class="meta">${esc(c.list)}${e ? " · " + esc(e.txt) : ""} · <a href="${c.url}" target="_blank" rel="noopener">ouvrir dans Trello ↗</a></div>
+      <div class="meta">${esc(c.list)}${e ? " · " + esc(e.txt) : ""} · <a href="${lienCarte(c.url)}" target="_blank" rel="noopener">ouvrir dans Trello ↗</a></div>
     </div>`;
   }).join("") : `<p class="vide">Rien en attente dans les trois premiers quadrants.</p>`;
 
