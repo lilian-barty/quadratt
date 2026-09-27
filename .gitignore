@@ -1,0 +1,16 @@
+# Notes internes : elles portent le raisonnement et les arbitrages du produit.
+# Elles vivent dans le dépôt du site, jamais ici.
+LISEZ-MOI.md
+
+# Copies de sauvegarde prises avant une intervention lourde
+*.AVANT-*.html
+*.SAUVE.html
+index.tmp.html
+
+# Bricoles de système
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Travail mis de côté, non suivi
+_en-attente/

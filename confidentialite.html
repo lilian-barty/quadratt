@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="author" content="Lilian Barty-Christophe">
+<link rel="author" href="https://www.lilian-barty.fr">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="index,follow">
+<title>Confidentialité · Quadratt</title>
+<script>/* Le choix fait dans l'outil vaut ici aussi : posé avant le premier rendu, sans quoi la page clignoterait. */try{var c=localStorage.getItem("quadratt-theme");if(c)document.documentElement.setAttribute("data-theme",c);}catch(e){}</script>
+<style>
+/* Polices servies depuis le site : aucun appel vers Google au chargement.
+   Fichiers variables, sous-ensemble latin. Licence SIL OFL. */
+@font-face{font-family:"Bricolage Grotesque";src:url(polices/bricolage.woff2) format("woff2");
+  font-weight:200 800;font-style:normal;font-display:swap}
+@font-face{font-family:"Newsreader";src:url(polices/newsreader.woff2) format("woff2");
+  font-weight:200 800;font-style:normal;font-display:swap}
+@font-face{font-family:"Newsreader";src:url(polices/newsreader-italique.woff2) format("woff2");
+  font-weight:200 800;font-style:italic;font-display:swap}
+</style>
+<style>
+:root{
+  --papier:#FAF8F5; --papier2:#F1EDE7; --encre:#14110F; --encre2:#4A423B;
+  --filet:#E2DBD1; --filet-fort:#C9BFB2;
+  --sans:"Bricolage Grotesque",system-ui,sans-serif;
+  --serif:"Newsreader",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--papier);color:var(--encre);
+  font-family:var(--serif);font-size:1.05rem;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.page{max-width:760px;margin:0 auto;padding:9vh 26px 70px}
+a{color:inherit}
+h1,h2{text-wrap:balance}
+p,li{text-wrap:pretty}
+h1{
+  font-family:var(--sans);font-weight:800;font-size:clamp(2.2rem,6vw,3.2rem);
+  line-height:.95;letter-spacing:-.02em;margin:0 0 10px
+}
+.retour{
+  display:inline-block;min-height:44px;font-family:var(--sans);
+  font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--encre2);text-decoration:underline;text-decoration-color:var(--filet-fort);
+  text-underline-offset:4px;margin-bottom:26px
+}
+.retour:hover{color:var(--encre);text-decoration-color:var(--encre)}
+.maj{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--encre2);margin:0 0 34px}
+.resume{
+  border-left:3px solid var(--encre);padding:2px 0 2px 20px;margin:0 0 42px;
+  font-size:1.2rem;line-height:1.6;max-width:62ch
+}
+h2{
+  font-family:var(--sans);font-weight:800;font-size:1.35rem;letter-spacing:-.015em;
+  margin:44px 0 12px;padding-top:22px;border-top:1px solid var(--filet)
+}
+h3{font-family:var(--sans);font-weight:600;font-size:1.02rem;margin:24px 0 8px}
+p{margin:0 0 14px;max-width:68ch}
+ul{margin:0 0 14px;padding-left:20px;max-width:68ch}
+li{margin-bottom:8px}
+table{border-collapse:collapse;width:100%;max-width:68ch;margin:0 0 18px;font-size:.98rem}
+th,td{text-align:left;vertical-align:top;padding:10px 12px 10px 0;border-bottom:1px solid var(--filet)}
+th{font-family:var(--sans);font-size:.8rem;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--encre2)}
+.en{margin-top:60px;padding-top:26px;border-top:2px solid var(--filet-fort)}
+.pied{margin-top:56px;padding-top:22px;border-top:1px solid var(--filet);
+  font-size:.92rem;color:var(--encre2)}
+.pied a{text-decoration-color:var(--filet-fort);text-underline-offset:3px}
+.logo{width:.95em;height:.95em;display:inline-block;vertical-align:baseline;
+  margin-right:.4em;color:var(--encre)}
+:root{--q1:#CC1C00}
+
+/* ---------- mode sombre ----------
+   Mêmes valeurs que l'application, à tenir en phase avec elle. Sans ce bloc,
+   quitter une app sombre pour les mentions légales revenait à se prendre une
+   page blanche en pleine figure. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="clair"]){
+    --papier:#1B1714; --papier2:#2A231D; --encre:#F2ECE3; --encre2:#B3A48F;
+    --filet:#342C24; --filet-fort:#4A3F35; --q1:#FF7F5F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="sombre"]{
+  --papier:#1B1714; --papier2:#2A231D; --encre:#F2ECE3; --encre2:#B3A48F;
+  --filet:#342C24; --filet-fort:#4A3F35; --q1:#FF7F5F;
+  color-scheme:dark;
+}
+:root[data-theme="clair"]{color-scheme:light}
+</style>
+</head>
+<body>
+<main class="page">
+
+  <a class="retour" href="./"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="3.4" y="3.4" width="25.2" height="25.2" fill="none" stroke="currentColor" stroke-width="2.6"/><line x1="16" y1="3.4" x2="16" y2="28.6" stroke="currentColor" stroke-width="2.6"/><line x1="3.4" y1="16" x2="28.6" y2="16" stroke="currentColor" stroke-width="2.6"/><rect x="6.8" y="6.8" width="6.4" height="6.4" fill="var(--q1)"/></svg>← Retour à Quadratt</a>
+
+  <h1>Confidentialité</h1>
+  <p class="maj">Mise à jour le 21 septembre 2026</p>
+
+  <p class="resume">Quadratt ne collecte rien. Il n’a pas de serveur, pas de base de données
+  et pas de compte. Vos sujets restent dans votre Trello ou dans votre navigateur, et
+  n’arrivent jamais chez l’éditeur.</p>
+
+  <h2>Pourquoi il n’y a presque rien à dire</h2>
+  <p>Quadratt est une page web qui s’exécute entièrement dans votre navigateur. Quand vous le
+  connectez à Trello, votre navigateur parle directement à Trello. Rien ne transite par un
+  serveur de l’éditeur, parce qu’il n’en existe pas : le site n’est qu’un fichier statique.</p>
+  <p>Conséquence directe : l’éditeur n’est pas responsable du traitement du contenu de vos
+  cartes. Il n’y a rien à conserver, rien à exporter, rien à supprimer de son côté.</p>
+
+  <h2>Ce qui est enregistré, et où</h2>
+  <table>
+    <tr><th>Donnée</th><th>Où elle vit</th><th>Combien de temps</th></tr>
+    <tr>
+      <td>Jeton de connexion Trello</td>
+      <td>Votre navigateur, stockage local</td>
+      <td>Jusqu’à déconnexion ou effacement</td>
+    </tr>
+    <tr>
+      <td>Carnet local (vos sujets, si vous n’utilisez pas Trello)</td>
+      <td>Votre navigateur, stockage local</td>
+      <td>Jusqu’à effacement par vous</td>
+    </tr>
+    <tr>
+      <td>Langue choisie, préférence d’animation</td>
+      <td>Votre navigateur, stockage local</td>
+      <td>Jusqu’à effacement par vous</td>
+    </tr>
+    <tr>
+      <td>Classement, historique de tri, dates</td>
+      <td>Votre compte Trello, dans une carte du tableau</td>
+      <td>Tant que vous la conservez</td>
+    </tr>
+  </table>
+  <p>Ce stockage local est strictement nécessaire au fonctionnement que vous avez demandé :
+  sans lui, il faudrait se reconnecter à chaque page et le carnet ne survivrait pas. Il ne
+  sert à aucun suivi.</p>
+
+  <h2>Ce que l’outil écrit dans votre Trello</h2>
+  <p>Quadratt pose une étiquette de quadrant sur les cartes que vous classez, et tient une
+  carte archivée qui sert de mémoire à l’outil. Il ne supprime aucune carte, n’en déplace
+  aucune, et n’écrit aucun texte à votre place.</p>
+  <p>Ces écritures ont lieu dans votre propre compte, sous votre propre autorisation, et
+  restent visibles et modifiables par vous dans Trello.</p>
+
+  <h2>Ce qu’il n’y a pas</h2>
+  <ul>
+    <li>Pas de compte à créer, pas de mot de passe</li>
+    <li>Pas de cookie de mesure d’audience, pas de traceur, pas de publicité</li>
+    <li>Pas d’outil d’analyse, pas de bouton de réseau social, pas de bandeau de consentement,
+      puisqu’il n’y a rien à consentir</li>
+    <li>Aucune revente ni partage de quoi que ce soit, puisqu’il n’y a rien à partager</li>
+  </ul>
+
+  <h2>Les exceptions, dites franchement</h2>
+
+  <h3>L’hébergeur voit passer les connexions</h3>
+  <p>Le site est servi par Vercel, qui enregistre les journaux de connexion habituels, dont
+  votre adresse IP. C’est le cas de tout hébergeur. Le détail relève de la politique de
+  confidentialité de Vercel Inc.</p>
+
+  <h3>Le signalement de bug vous fait envoyer un courriel</h3>
+  <p>L’entrée « Signaler un bug » ouvre votre logiciel de messagerie avec un message
+  prérempli, contenant la langue, le navigateur et le mode en cours. Rien n’est envoyé tant
+  que vous ne cliquez pas sur « Envoyer ». Si vous l’envoyez, l’éditeur reçoit votre adresse
+  et votre message, qu’il conserve le temps de traiter le problème.</p>
+
+  <h2>Polices de caractères</h2>
+  <p>Les polices sont servies depuis le site lui-même. Aucun appel n’est fait vers Google
+  Fonts ni vers aucun autre service tiers au chargement de la page.</p>
+
+  <h2>Vos droits, et comment les exercer sans passer par l’éditeur</h2>
+  <p>Le règlement européen vous donne un droit d’accès, de rectification, d’effacement,
+  d’opposition et de portabilité. La particularité de Quadratt est que vous les exercez
+  directement, sans rien demander à personne.</p>
+  <ul>
+    <li><strong>Retirer l’accès à Trello</strong> : paramètres de votre compte Trello, section
+      des applications autorisées. L’autorisation est révoquée immédiatement.</li>
+    <li><strong>Effacer ce qui est dans le navigateur</strong> : le bouton « Se déconnecter »
+      retire le jeton ; vider les données du site retire le reste.</li>
+    <li><strong>Effacer la mémoire de l’outil</strong> : supprimer dans Trello la carte
+      archivée nommée « Quadratt — mémoire de l’outil ». Votre classement, lui, vit dans les
+      étiquettes et reste intact.</li>
+    <li><strong>Récupérer votre carnet local</strong> : « Exporter le carnet » produit un
+      fichier lisible.</li>
+  </ul>
+  <p>Pour toute question, ou pour une réclamation :
+  <a href="mailto:lilianchristophe.pro@gmail.com">lilianchristophe.pro@gmail.com</a>. Vous
+  pouvez également saisir la CNIL.</p>
+
+  <h2>Si cela devait changer</h2>
+  <p>Le jour où Quadratt hébergerait des données pour proposer une synchronisation entre
+  appareils, cette page serait réécrite et le changement annoncé dans l’outil avant d’être
+  appliqué. Ce n’est pas le cas aujourd’hui.</p>
+
+  <section class="en">
+    <h2>In English, the short version</h2>
+    <p>Quadratt collects nothing. It has no server, no database and no account. The page runs
+    entirely in your browser and talks to Trello directly.</p>
+    <ul>
+      <li>Your Trello token, your local notebook and your preferences stay in your browser’s
+        local storage. They are required for the feature you asked for, and are never used for
+        tracking.</li>
+      <li>Your sorting and the tool’s history live in your own Trello board, as labels and one
+        archived card.</li>
+      <li>No cookies, no analytics, no advertising, no third-party tracking.</li>
+      <li>The site is served by Vercel, which keeps standard connection logs including your
+        IP address.</li>
+      <li>The “Report a bug” entry opens your own mail client with a prefilled message. Nothing
+        is sent unless you send it.</li>
+      <li>Fonts are served from the site itself; no third-party call is made while loading.</li>
+    </ul>
+    <p>To revoke access, use your Trello account settings, section “Authorised applications”.
+    To erase local data, sign out and clear the site data. Questions:
+    <a href="mailto:lilianchristophe.pro@gmail.com">lilianchristophe.pro@gmail.com</a>.</p>
+  </section>
+
+  <p class="pied">
+    <a href="./">Quadratt</a> ·
+    <a href="./mentions-legales.html">Mentions légales</a>
+  </p>
+
+</main>
+</body>
+</html>

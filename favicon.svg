@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Quadratt">
+  <!-- Quatre cases, une seule habitée : une seule chose compte maintenant.
+       Traits épaissis par rapport au logo en grand, pour tenir à 16 px. -->
+  <rect width="32" height="32" fill="#FAF8F5"/>
+  <rect x="4.6" y="4.6" width="22.8" height="22.8" fill="none" stroke="#14110F" stroke-width="3"/>
+  <line x1="16" y1="4.6" x2="16" y2="27.4" stroke="#14110F" stroke-width="3"/>
+  <line x1="4.6" y1="16" x2="27.4" y2="16" stroke="#14110F" stroke-width="3"/>
+  <rect x="7.6" y="7.6" width="5.8" height="5.8" fill="#CC1C00"/>
+</svg>
