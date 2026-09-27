@@ -3244,7 +3244,28 @@ async function ensureLabels(){
 
 /* Applique un modèle d’axes à l’interface. `ecrire` déclenche en plus le
    renommage des étiquettes dans Trello et l’enregistrement du choix. */
+/* Un modèle sur mesure arrive de la carte mémoire, donc du tableau Trello :
+   quiconque peut écrire sur le tableau (membre invité, automatisme) peut le
+   modifier. Ses textes sont ensuite affichés dans la page tels quels, à une
+   douzaine d'endroits. Plutôt que d'échapper chacun de ces endroits — et d'en
+   oublier un le jour où on en ajoute un treizième — on nettoie le modèle à son
+   unique point d'entrée : aucun chevron ni guillemet droit ne survit, donc
+   aucune balise ni aucun attribut ne peut être glissé. Un nom de case n'a
+   aucune raison légitime d'en contenir. */
+function assainirModele(m){
+  const propre = v => typeof v === "string" ? v.replace(/[<>"`]/g, "").slice(0, 120) : v;
+  const copie = JSON.parse(JSON.stringify(m || {}));
+  (function parcours(o){
+    Object.keys(o).forEach(k => {
+      if(o[k] && typeof o[k] === "object") parcours(o[k]);
+      else o[k] = propre(o[k]);
+    });
+  })(copie);
+  return copie;
+}
+
 async function appliquerModele(id, ecrire){
+  if(id && typeof id === "object") id = assainirModele(id);
   modeleId = MODELES[id] ? id : (id && typeof id === "object" ? "surMesure" : MODELE_DEFAUT);
   modele = MODELES[id] || (typeof id === "object" ? id : MODELES[MODELE_DEFAUT]);
   if(typeof id === "object"){ modeleId = "surMesure"; MODELES.surMesure = id; }
